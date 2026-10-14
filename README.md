@@ -55,4 +55,5 @@ BrainDump is an evolving personal project. Features and improvements may be intr
 
 ## License
 
-No license has been specified yet. Unless a license is added, all rights are reserved by default.
+Copyright (c) 2026 Burittobean. All rights reserved. See [LICENSE](LICENSE) for details.
+
