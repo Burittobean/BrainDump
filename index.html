@@ -1,0 +1,968 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b12">
+  <meta name="description" content="BrainDump — a private, personal space to capture ideas, organize thoughts, and get things done.">
+  <title>BrainDump — Your mind, organized.</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23080b12'/%3E%3Cpath d='M28 24h29a17 17 0 0 1 0 34H43v18H28z' fill='%234f8cff'/%3E%3Cpath d='M43 42h14a7 7 0 0 1 0 14H43z' fill='%23080b12'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080b12;
+      --panel: #0e131e;
+      --panel-2: #121927;
+      --panel-3: #182236;
+      --border: #202a3b;
+      --text: #eaf0fc;
+      --muted: #8491a8;
+      --blue: #4f8cff;
+      --blue-light: #80adff;
+      --blue-soft: rgba(79, 140, 255, .13);
+      --green: #4dd6a0;
+      --yellow: #f5c66b;
+      --red: #ff7485;
+      --radius: 16px;
+      --shadow: 0 18px 55px rgba(0,0,0,.22);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 45% -25%, rgba(49,100,190,.16), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, textarea, select { font: inherit; }
+    button { color: inherit; cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 3px;
+    }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .app { min-height: 100vh; }
+    .topbar {
+      height: 70px;
+      padding: 0 5%;
+      border-bottom: 1px solid rgba(132,145,168,.13);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: rgba(8,11,18,.8);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .brand-mark {
+      width: 37px; height: 37px; border-radius: 11px;
+      background: linear-gradient(145deg, #66a0ff, #3268d9);
+      display: grid; place-items: center;
+      color: white; font-weight: 900; font-size: 22px;
+      box-shadow: 0 5px 22px rgba(79,140,255,.24);
+    }
+    .brand-name { font-size: 16px; font-weight: 750; letter-spacing: -.5px; }
+    .brand-name span { color: var(--blue-light); }
+    .brand-sub { font-size: 11px; color: var(--muted); }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .button {
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--panel-2); padding: 9px 13px;
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; transition: .18s ease; white-space: nowrap;
+    }
+    .button:hover { border-color: #405573; background: var(--panel-3); }
+    .button.primary {
+      background: var(--blue); color: #fff; border-color: var(--blue);
+      font-weight: 650; box-shadow: 0 5px 20px rgba(79,140,255,.16);
+    }
+    .button.primary:hover { background: #679aff; }
+    .button.small { padding: 6px 9px; font-size: 12px; }
+    .button.icon { width: 36px; height: 36px; padding: 0; font-size: 16px; }
+    .layout {
+      width: min(1450px, 100%); margin: 0 auto;
+      padding: 30px 5% 60px; display: grid;
+      grid-template-columns: 220px minmax(0, 1fr); gap: 34px;
+    }
+    .sidebar { min-width: 0; }
+    .side-label {
+      color: #65728a; font-size: 10px; font-weight: 800;
+      letter-spacing: 1.6px; text-transform: uppercase;
+      padding: 0 11px; margin: 8px 0 10px;
+    }
+    .nav-list { display: grid; gap: 4px; }
+    .nav-item {
+      border: 1px solid transparent; background: transparent;
+      padding: 10px 11px; border-radius: 10px; width: 100%;
+      display: flex; align-items: center; gap: 11px; text-align: left;
+      color: var(--muted); transition: .16s;
+    }
+    .nav-item:hover { background: var(--panel); color: var(--text); }
+    .nav-item.active {
+      background: var(--blue-soft); border-color: rgba(79,140,255,.2);
+      color: var(--blue-light);
+    }
+    .nav-icon { width: 19px; text-align: center; font-size: 15px; }
+    .nav-count {
+      margin-left: auto; color: #7f8da5; font-size: 11px;
+      background: rgba(132,145,168,.1); border-radius: 6px; padding: 1px 6px;
+    }
+    .category-nav { margin-top: 28px; }
+    .category-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--dot, var(--blue)); flex: 0 0 auto;
+    }
+    .side-bottom {
+      margin-top: 32px; border: 1px solid var(--border);
+      border-radius: 13px; background: linear-gradient(145deg, #101a2b, #0e131e);
+      padding: 14px;
+    }
+    .side-bottom strong { display: block; font-size: 12px; margin-bottom: 5px; }
+    .side-bottom p { margin: 0; color: var(--muted); font-size: 11px; }
+    .side-bottom kbd {
+      display: inline-block; margin-top: 11px; border: 1px solid #35445e;
+      border-radius: 5px; padding: 2px 6px; color: #c2d0e8;
+    }
+    main { min-width: 0; }
+    .welcome {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 20px; margin: 5px 0 25px;
+    }
+    .eyebrow {
+      color: var(--blue-light); font-size: 10px; font-weight: 800;
+      letter-spacing: 1.8px; text-transform: uppercase; margin-bottom: 7px;
+    }
+    h1 { font-size: clamp(27px, 3vw, 36px); letter-spacing: -1.3px; line-height: 1.14; margin: 0; }
+    .welcome p { color: var(--muted); margin: 9px 0 0; font-size: 13px; }
+    .date-label { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .stats {
+      display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px; margin-bottom: 27px;
+    }
+    .stat {
+      background: linear-gradient(145deg, rgba(20,29,45,.9), rgba(14,19,30,.9));
+      border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+      min-width: 0;
+    }
+    .stat-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .stat-label { color: var(--muted); font-size: 12px; }
+    .stat-icon {
+      width: 29px; height: 29px; display: grid; place-items: center;
+      border-radius: 9px; background: var(--blue-soft); color: var(--blue-light);
+    }
+    .stat-number { font-size: 27px; font-weight: 750; letter-spacing: -1px; margin-top: 8px; }
+    .stat-foot { color: #73819a; font-size: 11px; margin-top: 2px; }
+    .capture {
+      background: linear-gradient(120deg, rgba(24,42,72,.7), rgba(15,22,35,.94));
+      border: 1px solid #293d5e; border-radius: var(--radius);
+      padding: 17px; margin-bottom: 27px; box-shadow: var(--shadow);
+    }
+    .capture-head { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+    .capture-head strong { font-size: 13px; }
+    .capture-head span { color: var(--muted); font-size: 11px; }
+    .capture-form { display: flex; gap: 9px; }
+    .capture-input {
+      flex: 1; min-width: 0; border: 1px solid #2c3b53; border-radius: 10px;
+      background: rgba(5,9,16,.62); color: var(--text); padding: 12px 13px;
+    }
+    .capture-input::placeholder { color: #69768c; }
+    .capture-bottom {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; margin-top: 11px;
+    }
+    .capture-bottom small { color: #74829a; font-size: 11px; }
+    select, .select {
+      border: 1px solid var(--border); background: var(--panel-2);
+      color: var(--muted); border-radius: 9px; padding: 7px 9px;
+    }
+    .toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 13px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .toolbar h2 { font-size: 16px; margin: 0; letter-spacing: -.25px; }
+    .toolbar-left { display: flex; align-items: center; gap: 10px; }
+    .toolbar-right { display: flex; align-items: center; gap: 8px; }
+    .search-wrap { position: relative; }
+    .search-wrap .search-icon {
+      position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+      color: #78869c; pointer-events: none;
+    }
+    .search {
+      width: 200px; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 9px; padding: 9px 10px 9px 33px; color: var(--text);
+    }
+    .search::placeholder { color: #69768c; }
+    .view-tabs {
+      display: flex; gap: 3px; background: #0d121c; padding: 3px;
+      border: 1px solid var(--border); border-radius: 10px;
+    }
+    .view-tab {
+      border: 0; background: transparent; border-radius: 7px;
+      padding: 6px 9px; color: var(--muted); font-size: 12px;
+    }
+    .view-tab.active { background: #202d42; color: var(--text); }
+    .cards {
+      display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 13px; align-items: stretch;
+    }
+    .note-card {
+      min-width: 0; min-height: 190px; padding: 16px;
+      border: 1px solid var(--border); border-radius: 14px;
+      background: linear-gradient(155deg, rgba(18,25,39,.96), rgba(13,18,28,.98));
+      display: flex; flex-direction: column; position: relative;
+      transition: border-color .18s, transform .18s, background .18s;
+    }
+    .note-card:hover { border-color: #354762; transform: translateY(-2px); }
+    .note-card.dragging { opacity: .4; transform: scale(.98); }
+    .note-card.drop-target { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-soft); }
+    .note-card.done { opacity: .68; }
+    .note-card.done .note-title { text-decoration: line-through; color: #95a1b5; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px; border-radius: 6px;
+      padding: 4px 7px; font-size: 10px; font-weight: 700;
+      background: var(--tag-bg, rgba(79,140,255,.12));
+      color: var(--tag-color, #8db5ff);
+    }
+    .card-actions { display: flex; gap: 3px; opacity: .72; }
+    .card-action {
+      width: 28px; height: 28px; border: 0; border-radius: 7px;
+      background: transparent; color: #8795ab; display: grid; place-items: center;
+      font-size: 14px;
+    }
+    .card-action:hover { color: var(--text); background: #253249; }
+    .card-action.pinned { color: var(--yellow); }
+    .note-title { font-size: 15px; font-weight: 700; letter-spacing: -.25px; margin: 14px 0 6px; overflow-wrap: anywhere; }
+    .note-body { color: #9aa7bc; font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; flex: 1; margin: 0; }
+    .note-body:empty { display: none; }
+    .card-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 8px; margin-top: 18px; padding-top: 12px;
+      border-top: 1px solid rgba(132,145,168,.12);
+    }
+    .card-date { font-size: 10px; color: #69778d; }
+    .task-check { display: inline-flex; align-items: center; gap: 7px; color: #9ba9bf; font-size: 11px; cursor: pointer; }
+    .task-check input { accent-color: var(--blue); }
+    .drag-hint { font-size: 10px; color: #65748c; }
+    .empty {
+      grid-column: 1 / -1; border: 1px dashed #2a3548;
+      border-radius: 15px; padding: 48px 20px; text-align: center;
+      background: rgba(14,19,30,.55);
+    }
+    .empty-icon { font-size: 29px; margin-bottom: 10px; }
+    .empty h3 { margin: 0; font-size: 15px; }
+    .empty p { color: var(--muted); font-size: 12px; margin: 7px 0 0; }
+    .footer {
+      display: flex; justify-content: space-between; gap: 15px;
+      border-top: 1px solid rgba(132,145,168,.12);
+      margin-top: 30px; padding-top: 18px; color: #68758b; font-size: 11px;
+    }
+    .footer strong { color: #a7b6cf; font-weight: 650; }
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(2,5,10,.76);
+      backdrop-filter: blur(8px); display: grid; place-items: center;
+      padding: 18px; z-index: 30;
+    }
+    .modal {
+      width: min(540px, 100%); max-height: min(90vh, 760px); overflow: auto;
+      background: #101725; border: 1px solid #2a3850;
+      border-radius: 17px; padding: 23px; box-shadow: 0 30px 100px #0009;
+    }
+    .modal-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 20px; }
+    .modal-head h2 { font-size: 19px; margin: 0; }
+    .modal-head p { color: var(--muted); font-size: 12px; margin: 5px 0 0; }
+    .field { display: grid; gap: 7px; margin-bottom: 15px; }
+    .field label { font-size: 12px; font-weight: 650; color: #c2cde0; }
+    .field input, .field textarea, .field select {
+      width: 100%; border: 1px solid #2c3a50; border-radius: 9px;
+      background: #0a101a; padding: 11px 12px; color: var(--text);
+    }
+    .field textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+    .field-help { font-size: 10px; color: var(--muted); }
+    .modal-bottom { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+    .modal-bottom-right { display: flex; gap: 8px; }
+    .toast {
+      position: fixed; z-index: 50; left: 50%; bottom: 24px;
+      transform: translate(-50%, 15px); opacity: 0; pointer-events: none;
+      background: #18253a; border: 1px solid #38547b; color: #eaf2ff;
+      border-radius: 10px; padding: 11px 16px; box-shadow: var(--shadow);
+      transition: .22s; max-width: calc(100vw - 32px); font-size: 12px;
+    }
+    .toast.show { transform: translate(-50%,0); opacity: 1; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 175px minmax(0,1fr); gap: 22px; }
+      .cards { grid-template-columns: 1fr; }
+      .search { width: 165px; }
+    }
+    @media (max-width: 650px) {
+      .topbar { padding: 0 16px; height: 62px; }
+      .brand-sub, .top-actions .hide-mobile { display: none; }
+      .top-actions { gap: 6px; }
+      .button { padding: 8px 10px; }
+      .layout { display: block; padding: 22px 16px 38px; }
+      .sidebar { margin-bottom: 24px; }
+      .side-label, .category-nav, .side-bottom { display: none; }
+      .nav-list { display: flex; overflow-x: auto; gap: 6px; padding-bottom: 3px; }
+      .nav-item { width: auto; flex: 0 0 auto; padding: 9px 11px; }
+      .nav-count { display: none; }
+      .welcome { align-items: flex-start; flex-direction: column; gap: 9px; }
+      .stats { gap: 8px; }
+      .stat { padding: 12px; }
+      .stat-label { font-size: 10px; }
+      .stat-number { font-size: 23px; }
+      .stat-foot { font-size: 10px; }
+      .capture { padding: 13px; }
+      .capture-form { flex-wrap: wrap; }
+      .capture-input { flex-basis: 100%; }
+      .capture-form .button { flex: 1; }
+      .toolbar { align-items: flex-start; }
+      .toolbar-right { width: 100%; }
+      .search-wrap { flex: 1; min-width: 0; }
+      .search { width: 100%; }
+      .view-tabs { flex: 0 0 auto; }
+      .cards { grid-template-columns: 1fr; }
+      .note-card { min-height: 170px; }
+      .footer { flex-direction: column; }
+      .date-label { white-space: normal; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">B</div>
+      <div>
+        <div class="brand-name">Brain<span>Dump</span></div>
+        <div class="brand-sub">Your mind, organized.</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="button hide-mobile" id="exportTop" title="Export backup (Ctrl/Cmd + E)">↥ <span>Export</span></button>
+      <button class="button primary" id="newTop">＋ <span>New thought</span></button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Navigation">
+      <div class="side-label">Workspace</div>
+      <nav class="nav-list" id="mainNav">
+        <button class="nav-item active" data-view="all"><span class="nav-icon">▦</span> All thoughts <span class="nav-count" id="allCount">0</span></button>
+        <button class="nav-item" data-view="pinned"><span class="nav-icon">⌑</span> Pinned <span class="nav-count" id="pinnedCount">0</span></button>
+        <button class="nav-item" data-view="tasks"><span class="nav-icon">✓</span> Tasks <span class="nav-count" id="taskCount">0</span></button>
+        <button class="nav-item" data-view="completed"><span class="nav-icon">☑</span> Completed</button>
+      </nav>
+      <div class="category-nav">
+        <div class="side-label">Categories</div>
+        <nav class="nav-list" id="categoryNav"></nav>
+      </div>
+      <div class="side-bottom">
+        <strong>✦ A little space to think</strong>
+        <p>Catch the thought now. Figure it out later. Your notes stay in this browser.</p>
+        <kbd>/</kbd> <span style="font-size:11px;color:var(--muted)">to search</span>
+      </div>
+    </aside>
+
+    <main>
+      <section class="welcome">
+        <div>
+          <div class="eyebrow">YOUR PERSONAL THINKING SPACE</div>
+          <h1 id="greeting">Clear your mind.</h1>
+          <p>Collect the ideas. Keep the good ones. Make room for more.</p>
+        </div>
+        <div class="date-label" id="todayLabel"></div>
+      </section>
+
+      <section class="stats" aria-label="Your stats">
+        <div class="stat">
+          <div class="stat-top"><span class="stat-label">Total thoughts</span><span class="stat-icon">▤</span></div>
+          <div class="stat-number" id="statTotal">0</div>
+          <div class="stat-foot">Everything on your mind</div>
+        </div>
+        <div class="stat">
+          <div class="stat-top"><span class="stat-label">To-do list</span><span class="stat-icon">☷</span></div>
+          <div class="stat-number" id="statTasks">0</div>
+          <div class="stat-foot">Things still to tackle</div>
+        </div>
+        <div class="stat">
+          <div class="stat-top"><span class="stat-label">Completed</span><span class="stat-icon">✦</span></div>
+          <div class="stat-number" id="statDone">0</div>
+          <div class="stat-foot" id="statDoneFoot">Small wins count</div>
+        </div>
+      </section>
+
+      <section class="capture">
+        <div class="capture-head"><span style="color:var(--blue-light);font-size:18px">✳</span><strong>Quick capture</strong><span>— don't lose the thought</span></div>
+        <form class="capture-form" id="quickForm">
+          <label class="sr-only" for="quickInput">Write a thought</label>
+          <input class="capture-input" id="quickInput" maxlength="180" placeholder="What's on your mind? A project, a random idea, anything..." autocomplete="off">
+          <button class="button primary" type="submit">＋ Capture</button>
+          <button class="button" type="button" id="openFull">More details ↗</button>
+        </form>
+        <div class="capture-bottom">
+          <small>Saved automatically on this device.</small>
+          <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)">
+            Save as
+            <select id="quickCategory" aria-label="Quick capture category">
+              <option value="Ideas">💡 Ideas</option>
+              <option value="Tasks">✓ Tasks</option>
+              <option value="Notes">▤ Notes</option>
+              <option value="Projects">⌘ Projects</option>
+              <option value="Personal">✳ Personal</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <h2 id="sectionTitle">All thoughts</h2>
+            <span class="nav-count" id="visibleCount">0</span>
+          </div>
+          <div class="toolbar-right">
+            <div class="search-wrap">
+              <span class="search-icon">⌕</span>
+              <label class="sr-only" for="searchInput">Search thoughts</label>
+              <input class="search" id="searchInput" type="search" placeholder="Search thoughts...  /">
+            </div>
+            <div class="view-tabs" aria-label="Sort order">
+              <button class="view-tab active" data-sort="custom">Custom</button>
+              <button class="view-tab" data-sort="newest">Newest</button>
+            </div>
+          </div>
+        </div>
+        <div class="cards" id="cards" aria-live="polite"></div>
+      </section>
+
+      <footer class="footer">
+        <span><strong>BrainDump</strong> · A calmer place for a busy mind.</span>
+        <span id="saveStatus">● Local storage enabled</span>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+
+<script>
+(() => {
+  "use strict";
+
+  const STORAGE_KEY = "braindump.v1";
+  const CATEGORIES = {
+    Ideas:    { icon: "💡", color: "#f5c66b", bg: "rgba(245,198,107,.12)" },
+    Tasks:    { icon: "✓", color: "#4dd6a0", bg: "rgba(77,214,160,.12)" },
+    Notes:    { icon: "▤", color: "#8db5ff", bg: "rgba(79,140,255,.13)" },
+    Projects: { icon: "⌘", color: "#c2a0ff", bg: "rgba(170,128,255,.13)" },
+    Personal: { icon: "✳", color: "#ff9db6", bg: "rgba(255,125,165,.12)" }
+  };
+
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const makeId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
+
+  let notes = [];
+  let currentView = "all";
+  let currentCategory = "";
+  let sortMode = "custom";
+  let draggedId = null;
+  let toastTimer;
+  let modalMode = "create";
+
+  function loadNotes() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return null;
+      return parsed.filter(n => n && typeof n.id === "string" && typeof n.title === "string")
+        .map(n => ({
+          id: n.id,
+          title: n.title.slice(0, 180),
+          body: typeof n.body === "string" ? n.body.slice(0, 20000) : "",
+          category: CATEGORIES[n.category] ? n.category : "Ideas",
+          pinned: Boolean(n.pinned),
+          isTask: Boolean(n.isTask),
+          done: Boolean(n.done),
+          createdAt: Number(n.createdAt) || Date.now(),
+          updatedAt: Number(n.updatedAt) || Number(n.createdAt) || Date.now(),
+          order: Number.isFinite(n.order) ? n.order : 0
+        }));
+    } catch (error) {
+      console.error("Could not load BrainDump data:", error);
+      return null;
+    }
+  }
+
+  function saveNotes() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+      $("#saveStatus").textContent = "● Saved locally";
+      return true;
+    } catch (error) {
+      $("#saveStatus").textContent = "⚠ Could not save";
+      showToast("Storage is full or unavailable. Export a backup.");
+      return false;
+    }
+  }
+
+  function showToast(message) {
+    const toast = $("#toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+  }
+
+  function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    const sameDay = date.toDateString() === now.toDateString();
+    const wasYesterday = date.toDateString() === yesterday.toDateString();
+    const time = date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    if (sameDay) return "Today · " + time;
+    if (wasYesterday) return "Yesterday · " + time;
+    return date.toLocaleDateString([], { month: "short", day: "numeric" }) + " · " + time;
+  }
+
+  function getViewNotes() {
+    let result = [...notes];
+    const query = $("#searchInput").value.trim().toLowerCase();
+    if (currentCategory) result = result.filter(n => n.category === currentCategory);
+    if (currentView === "pinned") result = result.filter(n => n.pinned);
+    if (currentView === "tasks") result = result.filter(n => n.isTask && !n.done);
+    if (currentView === "completed") result = result.filter(n => n.done);
+    if (query) {
+      result = result.filter(n =>
+        n.title.toLowerCase().includes(query) ||
+        n.body.toLowerCase().includes(query) ||
+        n.category.toLowerCase().includes(query)
+      );
+    }
+    result.sort((a, b) => {
+      if (a.pinned !== b.pinned) return Number(b.pinned) - Number(a.pinned);
+      if (sortMode === "newest") return b.createdAt - a.createdAt;
+      return a.order - b.order || b.createdAt - a.createdAt;
+    });
+    return result;
+  }
+
+  function renderNavigation() {
+    $("#allCount").textContent = notes.length;
+    $("#pinnedCount").textContent = notes.filter(n => n.pinned).length;
+    $("#taskCount").textContent = notes.filter(n => n.isTask && !n.done).length;
+    $$("#mainNav [data-view]").forEach(button => {
+      button.classList.toggle("active", button.dataset.view === currentView && !currentCategory);
+    });
+    $("#categoryNav").innerHTML = Object.entries(CATEGORIES).map(([name, cat]) => `
+      <button class="nav-item ${currentCategory === name ? "active" : ""}" data-category="${name}">
+        <span class="category-dot" style="--dot:${cat.color}"></span>${cat.icon} ${name}
+        <span class="nav-count">${notes.filter(n => n.category === name).length}</span>
+      </button>
+    `).join("");
+  }
+
+  function renderStats() {
+    const openTasks = notes.filter(n => n.isTask && !n.done).length;
+    const completed = notes.filter(n => n.done).length;
+    $("#statTotal").textContent = notes.length;
+    $("#statTasks").textContent = openTasks;
+    $("#statDone").textContent = completed;
+    $("#statDoneFoot").textContent = notes.length ? `${Math.round(completed / notes.length * 100)}% of all thoughts completed` : "Small wins count";
+  }
+
+  function renderCards() {
+    const visible = getViewNotes();
+    $("#visibleCount").textContent = visible.length;
+    const titleMap = { all: "All thoughts", pinned: "Pinned thoughts", tasks: "Tasks to tackle", completed: "Completed" };
+    $("#sectionTitle").textContent = currentCategory || titleMap[currentView] || "All thoughts";
+
+    if (!visible.length) {
+      const query = $("#searchInput").value.trim();
+      const heading = query ? "No matches found" : notes.length ? "Nothing here just yet" : "Your mind starts here";
+      const description = query
+        ? "Try a different search, or clear the search field."
+        : notes.length ? "Capture a new thought or switch to another view." : "Drop that first thought above. Big ideas start somewhere.";
+      $("#cards").innerHTML = `<div class="empty"><div class="empty-icon">${query ? "⌕" : "✳"}</div><h3>${heading}</h3><p>${description}</p></div>`;
+      return;
+    }
+
+    $("#cards").innerHTML = visible.map(note => {
+      const cat = CATEGORIES[note.category] || CATEGORIES.Ideas;
+      return `
+        <article class="note-card ${note.done ? "done" : ""}" data-id="${escapeHTML(note.id)}" draggable="true">
+          <div class="card-top">
+            <span class="tag" style="--tag-color:${cat.color};--tag-bg:${cat.bg}">${cat.icon} ${escapeHTML(note.category)}</span>
+            <div class="card-actions">
+              <button class="card-action ${note.pinned ? "pinned" : ""}" data-action="pin" data-id="${escapeHTML(note.id)}" title="${note.pinned ? "Unpin" : "Pin"} thought" aria-label="${note.pinned ? "Unpin" : "Pin"} thought">${note.pinned ? "★" : "☆"}</button>
+              <button class="card-action" data-action="edit" data-id="${escapeHTML(note.id)}" title="Edit thought" aria-label="Edit thought">↗</button>
+              <button class="card-action" data-action="delete" data-id="${escapeHTML(note.id)}" title="Delete thought" aria-label="Delete thought">×</button>
+            </div>
+          </div>
+          <h3 class="note-title">${escapeHTML(note.title)}</h3>
+          <p class="note-body">${escapeHTML(note.body)}</p>
+          <div class="card-footer">
+            ${note.isTask
+              ? `<label class="task-check"><input type="checkbox" data-action="toggle" data-id="${escapeHTML(note.id)}" ${note.done ? "checked" : ""}> ${note.done ? "Completed" : "Mark complete"}</label>`
+              : `<span class="card-date">${formatDate(note.updatedAt)}</span>`}
+            <span class="drag-hint" title="Drag to reorder">⠿ Drag</span>
+          </div>
+        </article>`;
+    }).join("");
+  }
+
+  function render() {
+    renderNavigation();
+    renderStats();
+    renderCards();
+  }
+
+  function resetView() {
+    currentView = "all";
+    currentCategory = "";
+  }
+
+  function createNote(title, category, options = {}) {
+    const now = Date.now();
+    notes.unshift({
+      id: makeId(), title: title.trim().slice(0, 180),
+      body: (options.body || "").slice(0, 20000),
+      category: CATEGORIES[category] ? category : "Ideas",
+      pinned: false, isTask: category === "Tasks" || Boolean(options.isTask),
+      done: false, createdAt: now, updatedAt: now, order: -now
+    });
+    saveNotes();
+    resetView();
+    render();
+  }
+
+  function openEditor(noteId = null, initialTitle = "", initialCategory = null) {
+    const existing = notes.find(n => n.id === noteId);
+    modalMode = existing ? "edit" : "create";
+    const note = existing || {
+      title: initialTitle,
+      body: "",
+      category: initialCategory || $("#quickCategory").value || "Ideas",
+      isTask: (initialCategory || $("#quickCategory").value) === "Tasks"
+    };
+    $("#modalRoot").innerHTML = `
+      <div class="modal-backdrop" id="modalBackdrop">
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+          <div class="modal-head">
+            <div><h2 id="modalTitle">${existing ? "Edit thought" : "Capture a thought"}</h2><p>Get it out of your head and into your space.</p></div>
+            <button class="button icon" id="closeModal" aria-label="Close">×</button>
+          </div>
+          <form id="editorForm">
+            <div class="field">
+              <label for="editTitle">Title</label>
+              <input id="editTitle" name="title" maxlength="180" required placeholder="Give this thought a name..." value="${escapeHTML(note.title)}">
+            </div>
+            <div class="field">
+              <label for="editBody">Details <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+              <textarea id="editBody" name="body" maxlength="20000" placeholder="Add context, links, a plan, or whatever you need...">${escapeHTML(note.body)}</textarea>
+              <div class="field-help">Plain text is supported. Line breaks are preserved.</div>
+            </div>
+            <div class="field">
+              <label for="editCategory">Category</label>
+              <select id="editCategory" name="category">
+                ${Object.entries(CATEGORIES).map(([name, cat]) => `<option value="${name}" ${note.category === name ? "selected" : ""}>${cat.icon} ${name}</option>`).join("")}
+              </select>
+            </div>
+            <div class="field">
+              <label style="display:flex;align-items:center;gap:9px">
+                <input id="editTask" type="checkbox" name="isTask" style="width:auto;accent-color:var(--blue)" ${note.isTask ? "checked" : ""}>
+                Treat this thought as a task
+              </label>
+            </div>
+            <div class="modal-bottom">
+              <button class="button" type="button" id="cancelModal">Cancel <span class="hide-mobile">· Esc</span></button>
+              <div class="modal-bottom-right"><button class="button primary" type="submit">${existing ? "Save changes" : "Save thought"} ↗</button></div>
+            </div>
+          </form>
+        </section>
+      </div>`;
+    const close = () => { $("#modalRoot").innerHTML = ""; };
+    $("#closeModal").addEventListener("click", close);
+    $("#cancelModal").addEventListener("click", close);
+    $("#modalBackdrop").addEventListener("click", event => {
+      if (event.target.id === "modalBackdrop") close();
+    });
+    $("#editorForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const title = $("#editTitle").value.trim();
+      if (!title) { $("#editTitle").focus(); return; }
+      const body = $("#editBody").value;
+      const category = $("#editCategory").value;
+      const isTask = $("#editTask").checked || category === "Tasks";
+      if (existing) {
+        existing.title = title;
+        existing.body = body;
+        existing.category = category;
+        existing.isTask = isTask;
+        if (!isTask) existing.done = false;
+        existing.updatedAt = Date.now();
+      } else {
+        createNote(title, category, { body, isTask });
+      }
+      saveNotes();
+      close();
+      render();
+      showToast(existing ? "Thought updated." : "Thought captured.");
+    });
+    $("#editTitle").focus();
+  }
+
+  function exportBackup() {
+    const backup = {
+      app: "BrainDump",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      notes
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `braindump-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast("Backup exported.");
+  }
+
+  function importBackup(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const incoming = Array.isArray(parsed) ? parsed : parsed.notes;
+        if (!Array.isArray(incoming)) throw new Error("This file doesn't contain a BrainDump backup.");
+        const valid = incoming.filter(n => n && typeof n.title === "string").map(n => ({
+          id: makeId(),
+          title: n.title.slice(0, 180),
+          body: typeof n.body === "string" ? n.body.slice(0, 20000) : "",
+          category: CATEGORIES[n.category] ? n.category : "Ideas",
+          pinned: Boolean(n.pinned),
+          isTask: Boolean(n.isTask),
+          done: Boolean(n.done),
+          createdAt: Number(n.createdAt) || Date.now(),
+          updatedAt: Number(n.updatedAt) || Date.now(),
+          order: Number.isFinite(n.order) ? n.order : 0
+        }));
+        if (!valid.length && incoming.length) throw new Error("No valid thoughts were found in that file.");
+        if (!confirm(`Import ${valid.length} thought(s)? They will be added to your current thoughts.`)) return;
+        const titles = new Set(notes.map(n => n.title + "|" + n.body));
+        const fresh = valid.filter(n => !titles.has(n.title + "|" + n.body));
+        notes = [...fresh, ...notes];
+        saveNotes();
+        resetView();
+        render();
+        showToast(`Imported ${fresh.length} thought(s).`);
+      } catch (error) {
+        alert("Couldn't import that backup.\n\n" + error.message);
+      } finally {
+        $("#importFile").value = "";
+      }
+    };
+    reader.onerror = () => alert("The file could not be read.");
+    reader.readAsText(file);
+  }
+
+  function removeNote(id) {
+    const note = notes.find(n => n.id === id);
+    if (!note || !confirm(`Delete "${note.title}"? This can't be undone unless you have a backup.`)) return;
+    notes = notes.filter(n => n.id !== id);
+    saveNotes();
+    render();
+    showToast("Thought deleted.");
+  }
+
+  $("#quickForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const input = $("#quickInput");
+    const title = input.value.trim();
+    if (!title) { input.focus(); return; }
+    createNote(title, $("#quickCategory").value);
+    input.value = "";
+    showToast("Thought captured.");
+    input.focus();
+  });
+
+  $("#openFull").addEventListener("click", () => openEditor(null, $("#quickInput").value.trim()));
+  $("#newTop").addEventListener("click", () => openEditor());
+  $("#exportTop").addEventListener("click", exportBackup);
+
+  $("#mainNav").addEventListener("click", event => {
+    const button = event.target.closest("[data-view]");
+    if (!button) return;
+    currentView = button.dataset.view;
+    currentCategory = "";
+    render();
+  });
+
+  $("#categoryNav").addEventListener("click", event => {
+    const button = event.target.closest("[data-category]");
+    if (!button) return;
+    currentCategory = button.dataset.category;
+    currentView = "all";
+    render();
+  });
+
+  $("#searchInput").addEventListener("input", renderCards);
+
+  $$(".view-tab").forEach(button => button.addEventListener("click", () => {
+    sortMode = button.dataset.sort;
+    $$(".view-tab").forEach(tab => tab.classList.toggle("active", tab === button));
+    renderCards();
+  }));
+
+  $("#cards").addEventListener("click", event => {
+    const button = event.target.closest("[data-action]");
+    if (!button || button.dataset.action === "toggle") return;
+    const note = notes.find(n => n.id === button.dataset.id);
+    if (!note) return;
+    switch (button.dataset.action) {
+      case "pin":
+        note.pinned = !note.pinned;
+        note.updatedAt = Date.now();
+        saveNotes();
+        render();
+        showToast(note.pinned ? "Thought pinned." : "Thought unpinned.");
+        break;
+      case "edit": openEditor(note.id); break;
+      case "delete": removeNote(note.id); break;
+    }
+  });
+
+  $("#cards").addEventListener("change", event => {
+    const input = event.target.closest('[data-action="toggle"]');
+    if (!input) return;
+    const note = notes.find(n => n.id === input.dataset.id);
+    if (!note) return;
+    note.done = input.checked;
+    note.isTask = true;
+    note.updatedAt = Date.now();
+    saveNotes();
+    render();
+    showToast(note.done ? "Task completed. Nice work!" : "Task reopened.");
+  });
+
+  // Native drag-and-drop reordering; pinned cards remain at the top.
+  $("#cards").addEventListener("dragstart", event => {
+    const card = event.target.closest(".note-card");
+    if (!card) return;
+    draggedId = card.dataset.id;
+    card.classList.add("dragging");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", draggedId);
+  });
+  $("#cards").addEventListener("dragend", event => {
+    const card = event.target.closest(".note-card");
+    if (card) card.classList.remove("dragging");
+    $$(".drop-target", $("#cards")).forEach(el => el.classList.remove("drop-target"));
+    draggedId = null;
+  });
+  $("#cards").addEventListener("dragover", event => {
+    const card = event.target.closest(".note-card");
+    if (!card || !draggedId || card.dataset.id === draggedId) return;
+    event.preventDefault();
+    $$(".drop-target", $("#cards")).forEach(el => el.classList.remove("drop-target"));
+    card.classList.add("drop-target");
+    event.dataTransfer.dropEffect = "move";
+  });
+  $("#cards").addEventListener("drop", event => {
+    const targetCard = event.target.closest(".note-card");
+    if (!targetCard || !draggedId || targetCard.dataset.id === draggedId) return;
+    event.preventDefault();
+    const from = notes.findIndex(n => n.id === draggedId);
+    const to = notes.findIndex(n => n.id === targetCard.dataset.id);
+    if (from < 0 || to < 0) return;
+    const [moved] = notes.splice(from, 1);
+    notes.splice(to, 0, moved);
+    notes.forEach((n, index) => n.order = index);
+    saveNotes();
+    render();
+    showToast("Thoughts reordered.");
+  });
+
+  $("#importFile").addEventListener("change", event => importBackup(event.target.files[0]));
+
+  // Keyboard shortcuts: / or Ctrl/Cmd+K searches, N creates, Ctrl/Cmd+E exports.
+  document.addEventListener("keydown", event => {
+    const target = event.target;
+    const typing = target && (target.matches("input, textarea, select") || target.isContentEditable);
+    const modifier = event.ctrlKey || event.metaKey;
+
+    if (event.key === "Escape") {
+      if ($("#modalRoot").innerHTML) $("#modalRoot").innerHTML = "";
+      else if (document.activeElement === $("#searchInput")) {
+        $("#searchInput").value = "";
+        $("#searchInput").blur();
+        renderCards();
+      }
+      return;
+    }
+    if (modifier && event.key.toLowerCase() === "e") {
+      event.preventDefault();
+      exportBackup();
+      return;
+    }
+    if (modifier && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      $("#searchInput").focus();
+      $("#searchInput").select();
+      return;
+    }
+    if (!typing && event.key === "/") {
+      event.preventDefault();
+      $("#searchInput").focus();
+      return;
+    }
+    if (!typing && event.key.toLowerCase() === "n") {
+      event.preventDefault();
+      openEditor();
+      return;
+    }
+    if (modifier && event.key === "Enter" && $("#modalRoot").innerHTML) {
+      const form = $("#editorForm");
+      if (form) form.requestSubmit();
+    }
+  });
+
+  function initialize() {
+    const stored = loadNotes();
+    notes = stored || [];
+    $("#todayLabel").textContent = new Date().toLocaleDateString(undefined, {
+      weekday: "long", month: "long", day: "numeric", year: "numeric"
+    });
+    render();
+    if (stored === null) {
+      $("#saveStatus").textContent = "● Local storage enabled";
+    }
+  }
+
+  initialize();
+})();
+</script>
+</body>
+</html>
