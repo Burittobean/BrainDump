@@ -24,7 +24,7 @@ BrainDump is a lightweight, browser-based productivity dashboard designed to hel
 
 Visit the live website:
 
-[Open BrainDump](https://burittobean.github.io/BrainDump/)
+[Open BrainDump](https://burritobean.github.io/BrainDump/)
 
 If the website is unavailable, check that GitHub Pages is enabled in the repository settings.
 
